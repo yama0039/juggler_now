@@ -1,8 +1,9 @@
 /**
- * Juggler Data Bridge - Bookmarklet Generator
+ * Juggler Data Bridge - Unified App Logic
  */
 
-const BOOKMARKLET_CODE = `(function() {
+const BOOKMARKLET_TEMPLATE = `(function() {
+  const targetUrl = 'TARGET_URL';
   const modelName = document.querySelector('#slumpTi h2 strong')?.innerText || '';
   const modelMap = {
     'アイム': 'I6', 'ｱｲﾑ': 'I6',
@@ -43,53 +44,11 @@ const BOOKMARKLET_CODE = `(function() {
     const g = td[idx.g].innerText.trim().replace(/,/g, '');
     const bb = td[idx.bb].innerText.trim();
     const rb = td[idx.rb].innerText.trim();
-    return \`\${mid},\${no},\${g},0,\${bb},\${rb}\`;
+    return [mid, no, g, 0, bb, rb].join(',');
   }).join('|');
 
-  const url = window.location.origin + window.location.pathname + '?d=' + encodeURIComponent(data);
-  location.href = url;
+  location.href = targetUrl + '?d=' + encodeURIComponent(data);
 })();`;
-
-document.addEventListener('DOMContentLoaded', () => {
-    const bookmarkletLink = document.getElementById('bookmarklet');
-    
-    // Minify and wrap in javascript: pseudo-protocol
-    const minified = BOOKMARKLET_CODE
-        .replace(/\n/g, '')
-        .replace(/\s{2,}/g, ' ');
-        
-    bookmarkletLink.href = `javascript:${minified}`;
-    
-    // Check for data in URL
-    const params = new URLSearchParams(window.location.search);
-    const dataString = params.get('d');
-    if (dataString) {
-        showAnalysis(dataString);
-    }
-
-    // ... (rest of existing logic) ...
-    // Copy functionality
-    const copyBtn = document.getElementById('copy-code-btn');
-    copyBtn.addEventListener('click', () => {
-        const fullCode = `javascript:${minified}`;
-        navigator.clipboard.writeText(fullCode).then(() => {
-            copyBtn.innerText = 'コピーしました！';
-            copyBtn.style.background = 'rgba(0, 255, 100, 0.2)';
-            setTimeout(() => {
-                copyBtn.innerText = 'コードをコピー';
-                copyBtn.style.background = '';
-            }, 2000);
-        });
-    });
-
-    // Drag and drop prevent default
-    bookmarkletLink.addEventListener('click', (e) => {
-        if (e.target.tagName === 'A') {
-            e.preventDefault();
-            alert('このボタンをブックマークバーにドラッグ＆ドロップしてください。');
-        }
-    });
-});
 
 const machineSpecs = [
     { id: 'I6', name: 'SアイムジャグラーEX', bigPayout: 252, regPayout: 96, backcalcCherry: 35.617, settings: { 1: { big: 273.1, reg: 439.8, grape: 6.02, payout: 97.9 }, 2: { big: 269.7, reg: 399.6, grape: 6.02, payout: 99.0 }, 3: { big: 269.7, reg: 331.0, grape: 6.02, payout: 100.1 }, 4: { big: 259.0, reg: 315.1, grape: 6.02, payout: 101.9 }, 5: { big: 259.0, reg: 255.0, grape: 6.02, payout: 104.5 }, 6: { big: 255.0, reg: 255.0, grape: 5.85, payout: 106.8 } } },
@@ -121,17 +80,49 @@ function calculateEstimation(machine, spins, big, reg, grape) {
         const pReg = 1 / specs.reg;
         const pGrape = 1 / specs.grape;
         const pMiss = 1 - (pBig + pReg + pGrape);
-        
         const missCount = spins - (big + reg + grape);
-        // Bayesian log-likelihood
         return (big * Math.log(pBig)) + (reg * Math.log(pReg)) + (grape * Math.log(pGrape)) + (missCount * Math.log(pMiss));
     });
-
     const maxLog = Math.max(...logLikelihoods);
     const likelihoods = logLikelihoods.map(l => Math.exp(l - maxLog));
     const sumLikelihood = likelihoods.reduce((a, b) => a + b, 0);
     return settings.map((s, i) => ({ setting: s, prob: (likelihoods[i] / sumLikelihood) * 100 }));
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const currentUrl = window.location.origin + window.location.pathname;
+    const minified = BOOKMARKLET_TEMPLATE
+        .replace('TARGET_URL', currentUrl)
+        .replace(/\n/g, '')
+        .replace(/\s{2,}/g, ' ');
+        
+    const bookmarkletLink = document.getElementById('bookmarklet');
+    if (bookmarkletLink) {
+        bookmarkletLink.href = `javascript:${minified}`;
+        bookmarkletLink.addEventListener('click', (e) => {
+            if (e.target.tagName === 'A') {
+                e.preventDefault();
+                alert('このボタンをブックマークバーにドラッグ＆ドロップしてください。');
+            }
+        });
+    }
+
+    const copyBtn = document.getElementById('copy-code-btn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(`javascript:${minified}`).then(() => {
+                copyBtn.innerText = 'コピーしました！';
+                setTimeout(() => copyBtn.innerText = 'コードをコピー', 2000);
+            });
+        });
+    }
+    
+    const params = new URLSearchParams(window.location.search);
+    const dataString = params.get('d');
+    if (dataString) {
+        showAnalysis(dataString);
+    }
+});
 
 function showAnalysis(dataString) {
     document.getElementById('installer-section').style.display = 'none';
@@ -152,27 +143,23 @@ function showAnalysis(dataString) {
         const rbCount = parseInt(rb) || 0;
         
         const tr = document.createElement('tr');
-        tr.id = `row-${index}`;
         tr.innerHTML = `
             <td>${no}</td>
             <td>${gameCount.toLocaleString()}</td>
             <td>${bbCount}</td>
             <td>${rbCount}</td>
-            <td><input type="number" class="diff-input" data-index="${index}" placeholder="0"></td>
+            <td><input type="number" class="diff-input" placeholder="0"></td>
             <td class="grape-val">-</td>
             <td class="prob-val">-</td>
             <td class="est-val">-</td>
         `;
         tbody.appendChild(tr);
 
-        // Add event listener for diff input
-        tr.querySelector('.diff-input').addEventListener('input', (e) => {
-            const diff = parseInt(e.target.value) || 0;
-            updateRowAnalysis(tr, machine, gameCount, bbCount, rbCount, diff);
+        const input = tr.querySelector('.diff-input');
+        input.addEventListener('input', () => {
+            updateRowAnalysis(tr, machine, gameCount, bbCount, rbCount, parseInt(input.value) || 0);
             updateGlobalSummary(machine);
         });
-        
-        // Initial calc with diff=0
         updateRowAnalysis(tr, machine, gameCount, bbCount, rbCount, 0);
     });
     updateGlobalSummary(machine);
@@ -181,35 +168,30 @@ function showAnalysis(dataString) {
 function updateRowAnalysis(tr, machine, spins, big, reg, diff) {
     const grapeCount = backCalculateGrapes(machine, spins, big, reg, diff);
     const grapeProb = grapeCount > 0 ? (spins / grapeCount).toFixed(2) : '-';
-    
     const estimation = calculateEstimation(machine, spins, big, reg, grapeCount);
-    const bestSetting = [...estimation].sort((a, b) => b.prob - a.prob)[0];
+    const best = [...estimation].sort((a, b) => b.prob - a.prob)[0];
     
     tr.querySelector('.grape-val').innerText = grapeProb !== '-' ? '1/' + grapeProb : '-';
-    tr.querySelector('.prob-val').innerText = (reg > 0) ? '1/' + (spins / (big + reg)).toFixed(1) : '-';
-    tr.querySelector('.est-val').innerText = `設定${bestSetting.setting} (${bestSetting.prob.toFixed(1)}%)`;
+    tr.querySelector('.prob-val').innerText = (big + reg > 0) ? '1/' + (spins / (big + reg)).toFixed(1) : '-';
+    tr.querySelector('.est-val').innerText = `設定${best.setting} (${best.prob.toFixed(1)}%)`;
     
-    // Highlight if setting 5/6 probability is high
-    const highSettingProb = estimation.filter(e => e.setting >= 5).reduce((sum, e) => sum + e.prob, 0);
-    tr.querySelector('.est-val').className = 'est-val ' + (highSettingProb > 50 ? 'high-setting' : '');
+    const highProb = estimation.filter(e => e.setting >= 5).reduce((s, e) => s + e.prob, 0);
+    tr.querySelector('.est-val').className = 'est-val ' + (highProb > 50 ? 'high-setting' : '');
 }
 
 function updateGlobalSummary(machine) {
     const rows = Array.from(document.querySelectorAll('#analysis-tbody tr'));
     let tSpins = 0, tBB = 0, tRB = 0, tDiff = 0;
-    
     rows.forEach(tr => {
         tSpins += parseInt(tr.cells[1].innerText.replace(/,/g, '')) || 0;
         tBB += parseInt(tr.cells[2].innerText) || 0;
         tRB += parseInt(tr.cells[3].innerText) || 0;
         tDiff += parseInt(tr.querySelector('.diff-input').value) || 0;
     });
-
     const tGrape = backCalculateGrapes(machine, tSpins, tBB, tRB, tDiff);
     const avgGrape = tGrape > 0 ? (tSpins / tGrape).toFixed(2) : '-';
     const estimation = calculateEstimation(machine, tSpins, tBB, tRB, tGrape);
     const best = [...estimation].sort((a, b) => b.prob - a.prob)[0];
-
     document.getElementById('total-units').innerText = rows.length;
     document.getElementById('avg-bb').innerText = (tBB / rows.length).toFixed(1);
     document.getElementById('avg-rb').innerText = (tRB / rows.length).toFixed(1);
@@ -217,11 +199,9 @@ function updateGlobalSummary(machine) {
     document.getElementById('estimated-setting').innerText = `設定${best.setting} (${best.prob.toFixed(1)}%)`;
 }
 
-// Tab switcher
 window.showTab = (tabId) => {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    
     event.currentTarget.classList.add('active');
     document.getElementById(`tab-${tabId}`).classList.add('active');
 };
