@@ -134,12 +134,13 @@ function showAnalysis(dataString) {
     document.getElementById('analysis-section').style.display = 'block';
     
     const rawRows = dataString.split('|');
-    const tbody = document.getElementById('analysis-tbody');
-    tbody.innerHTML = '';
+    const container = document.getElementById('cards-container');
+    container.innerHTML = '';
     
     const mid = rawRows[0].split(',')[0];
     const machine = machineSpecs.find(m => m.id === mid) || machineSpecs[0];
-    document.getElementById('display-model-name').innerText = machine.name + ' 解析結果';
+    document.getElementById('display-model-name').innerText = machine.name;
+    document.getElementById('model-badge').innerText = mid;
 
     rawRows.forEach((rowData, index) => {
         const [_, no, g, __, bb, rb] = rowData.split(',');
@@ -147,61 +148,89 @@ function showAnalysis(dataString) {
         const bbCount = parseInt(bb) || 0;
         const rbCount = parseInt(rb) || 0;
         
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${no}</td>
-            <td>${gameCount.toLocaleString()}</td>
-            <td>${bbCount}</td>
-            <td>${rbCount}</td>
-            <td><input type="number" class="diff-input" placeholder="0"></td>
-            <td class="grape-val">-</td>
-            <td class="prob-val">-</td>
-            <td class="est-val">-</td>
+        const card = document.createElement('div');
+        card.className = 'unit-card';
+        card.innerHTML = `
+            <div class="card-top">
+                <div class="unit-no"><span>No.</span>${no}</div>
+                <div class="estimation-badge">
+                    <span class="est-setting">設定 ?</span>
+                    <span class="est-prob">-%</span>
+                </div>
+            </div>
+            <div class="card-main">
+                <div class="data-item">
+                    <span class="label">Games</span>
+                    <span class="value">${gameCount.toLocaleString()}</span>
+                </div>
+                <div class="data-item">
+                    <span class="label">BB / RB</span>
+                    <span class="value">${bbCount} / ${rbCount}</span>
+                </div>
+                <div class="data-item">
+                    <span class="label">合算</span>
+                    <span class="prob-val value">-</span>
+                </div>
+                <div class="data-item">
+                    <span class="label">ブドウ</span>
+                    <span class="grape-val value">-</span>
+                </div>
+            </div>
+            <div class="card-input">
+                <label>差枚数 入力</label>
+                <input type="number" class="diff-input" placeholder="0">
+            </div>
         `;
-        tbody.appendChild(tr);
+        container.appendChild(card);
 
-        const input = tr.querySelector('.diff-input');
+        const input = card.querySelector('.diff-input');
         input.addEventListener('input', () => {
-            updateRowAnalysis(tr, machine, gameCount, bbCount, rbCount, parseInt(input.value) || 0);
+            updateRowAnalysis(card, machine, gameCount, bbCount, rbCount, parseInt(input.value) || 0);
             updateGlobalSummary(machine);
         });
-        updateRowAnalysis(tr, machine, gameCount, bbCount, rbCount, 0);
+        updateRowAnalysis(card, machine, gameCount, bbCount, rbCount, 0);
     });
     updateGlobalSummary(machine);
 }
 
-function updateRowAnalysis(tr, machine, spins, big, reg, diff) {
+function updateRowAnalysis(card, machine, spins, big, reg, diff) {
     const grapeCount = backCalculateGrapes(machine, spins, big, reg, diff);
     const grapeProb = grapeCount > 0 ? (spins / grapeCount).toFixed(2) : '-';
     const estimation = calculateEstimation(machine, spins, big, reg, grapeCount);
-    const best = [...estimation].sort((a, b) => b.prob - a.prob)[0];
+    const sorted = [...estimation].sort((a, b) => b.prob - a.prob);
+    const best = sorted[0];
     
-    tr.querySelector('.grape-val').innerText = grapeProb !== '-' ? '1/' + grapeProb : '-';
-    tr.querySelector('.prob-val').innerText = (big + reg > 0) ? '1/' + (spins / (big + reg)).toFixed(1) : '-';
-    tr.querySelector('.est-val').innerText = `設定${best.setting} (${best.prob.toFixed(1)}%)`;
+    card.querySelector('.grape-val').innerText = grapeProb !== '-' ? '1/' + grapeProb : '-';
+    card.querySelector('.prob-val').innerText = (big + reg > 0) ? '1/' + (spins / (big + reg)).toFixed(1) : '-';
+    
+    const estEl = card.querySelector('.est-setting');
+    estEl.innerText = `設定${best.setting}`;
+    card.querySelector('.est-prob').innerText = `${best.prob.toFixed(1)}%`;
     
     const highProb = estimation.filter(e => e.setting >= 5).reduce((s, e) => s + e.prob, 0);
-    tr.querySelector('.est-val').className = 'est-val ' + (highProb > 50 ? 'high-setting' : '');
+    estEl.style.color = highProb > 50 ? '#00ff66' : (best.setting >= 4 ? '#ffcc00' : '#fff');
 }
 
 function updateGlobalSummary(machine) {
-    const rows = Array.from(document.querySelectorAll('#analysis-tbody tr'));
+    const cards = Array.from(document.querySelectorAll('.unit-card'));
     let tSpins = 0, tBB = 0, tRB = 0, tDiff = 0;
-    rows.forEach(tr => {
-        tSpins += parseInt(tr.cells[1].innerText.replace(/,/g, '')) || 0;
-        tBB += parseInt(tr.cells[2].innerText) || 0;
-        tRB += parseInt(tr.cells[3].innerText) || 0;
-        tDiff += parseInt(tr.querySelector('.diff-input').value) || 0;
+    cards.forEach(card => {
+        tSpins += parseInt(card.querySelector('.data-item .value').innerText.replace(/,/g, '')) || 0;
+        const counts = card.querySelectorAll('.data-item .value')[1].innerText.split(' / ');
+        tBB += parseInt(counts[0]) || 0;
+        tRB += parseInt(counts[1]) || 0;
+        tDiff += parseInt(card.querySelector('.diff-input').value) || 0;
     });
+
     const tGrape = backCalculateGrapes(machine, tSpins, tBB, tRB, tDiff);
     const avgGrape = tGrape > 0 ? (tSpins / tGrape).toFixed(2) : '-';
     const estimation = calculateEstimation(machine, tSpins, tBB, tRB, tGrape);
     const best = [...estimation].sort((a, b) => b.prob - a.prob)[0];
-    document.getElementById('total-units').innerText = rows.length;
-    document.getElementById('avg-bb').innerText = (tBB / rows.length).toFixed(1);
-    document.getElementById('avg-rb').innerText = (tRB / rows.length).toFixed(1);
+
+    document.getElementById('total-units').innerText = cards.length;
+    document.getElementById('avg-counts').innerText = `${(tBB / cards.length).toFixed(1)} / ${(tRB / cards.length).toFixed(1)}`;
     document.getElementById('avg-grape').innerText = avgGrape !== '-' ? '1/' + avgGrape : '-';
-    document.getElementById('estimated-setting').innerText = `設定${best.setting} (${best.prob.toFixed(1)}%)`;
+    document.getElementById('estimated-setting').innerText = `設定${best.setting}`;
 }
 
 window.showTab = (tabId) => {
