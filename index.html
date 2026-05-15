@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goraggio to Juggler Analyzer | 台データオンライン対応</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@300;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-glow"></div>
+    
+    <main class="container">
+        <header class="hero">
+            <div class="badge">Advanced Tool</div>
+            <h1>Juggler <span>Data Bridge</span></h1>
+            <p class="subtitle">台データオンラインの情報を、一瞬で詳細解析へ。</p>
+        </header>
+
+        <section class="tool-section">
+            <div class="glass-card">
+                <h2>1. ツールを登録する</h2>
+                
+                <div class="tab-container">
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" onclick="showTab('pc')">PC (Chrome/Edge)</button>
+                        <button class="tab-btn" onclick="showTab('mobile')">iPhone (Safari)</button>
+                    </div>
+
+                    <div id="tab-pc" class="tab-content active">
+                        <p>下のボタンを<strong>ブックマークバー</strong>にドラッグ＆ドロップしてください。</p>
+                        <div class="installer-area">
+                            <a id="bookmarklet" class="btn-premium" href="#">
+                                <span class="icon">⚡</span>
+                                ジャグラー解析 (Goraggio版)
+                            </a>
+                        </div>
+                    </div>
+
+                    <div id="tab-mobile" class="tab-content">
+                        <p>iPhoneの場合は、以下のコードをコピーしてブックマークのURL欄に貼り付けてください。</p>
+                        <div class="copy-area">
+                            <button id="copy-code-btn" class="btn-secondary">コードをコピー</button>
+                        </div>
+                        <ol class="mobile-steps">
+                            <li>このページを一度ブックマークします。</li>
+                            <li>ブックマーク編集を開き、名前を「ジャグラー解析」等に変更。</li>
+                            <li>URL欄をすべて消し、コピーしたコードを貼り付けて保存。</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div class="tip">
+                    <p>※ PCでブックマークバーが表示されていない場合は <code>Ctrl + Shift + B</code> で表示できます。</p>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <h2>2. 使い方</h2>
+                <div class="steps">
+                    <div class="step">
+                        <span class="step-num">01</span>
+                        <p>台データオンラインで店舗を選び、<strong>機種別台一覧</strong>ページ（スランプグラフ等があるページ）を開きます。</p>
+                    </div>
+                    <div class="step">
+                        <span class="step-num">02</span>
+                        <p>登録したブックマークをクリックします。</p>
+                    </div>
+                    <div class="step">
+                        <span class="step-num">03</span>
+                        <p>自動的に「ジャグラー設定判別ツール」へデータが転送され、解析が始まります。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="compatible-models">
+            <h3>対応機種</h3>
+            <div class="model-tags">
+                <span>SアイムジャグラーEX</span>
+                <span>SマイジャグラーV</span>
+                <span>Sファンキージャグラー2</span>
+                <span>Sゴーゴージャグラー3</span>
+                <span>SハッピージャグラーVIII</span>
+                <span>ジャグラーガールズSS</span>
+                <span>ミスタージャグラー</span>
+            </div>
+        </section>
+        
+        <footer>
+            <p>&copy; 2024 Juggler Data Bridge Project. Optimized for Goraggio.</p>
+        </footer>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
