@@ -1,5 +1,5 @@
 /**
- * Juggler Data Bridge - Unified App Logic
+ * Juggler Data Bridge - Unified App Logic (v1.4.1)
  */
 
 const BOOKMARKLET_TEMPLATE = `(function() {
