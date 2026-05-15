@@ -91,52 +91,130 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
+const machineSpecs = [
+    { id: 'I6', name: 'SアイムジャグラーEX', bigPayout: 252, regPayout: 96, backcalcCherry: 35.617, settings: { 1: { big: 273.1, reg: 439.8, grape: 6.02, payout: 97.9 }, 2: { big: 269.7, reg: 399.6, grape: 6.02, payout: 99.0 }, 3: { big: 269.7, reg: 331.0, grape: 6.02, payout: 100.1 }, 4: { big: 259.0, reg: 315.1, grape: 6.02, payout: 101.9 }, 5: { big: 259.0, reg: 255.0, grape: 6.02, payout: 104.5 }, 6: { big: 255.0, reg: 255.0, grape: 5.85, payout: 106.8 } } },
+    { id: 'M5', name: 'マイジャグラーⅤ', bigPayout: 240, regPayout: 96, backcalcCherry: 34.657, settings: { 1: { big: 273.1, reg: 409.6, grape: 5.91, payout: 98.1 }, 2: { big: 270.8, reg: 385.5, grape: 5.87, payout: 99.3 }, 3: { big: 266.4, reg: 336.1, grape: 5.83, payout: 101.5 }, 4: { big: 254.0, reg: 290.0, grape: 5.80, payout: 104.1 }, 5: { big: 240.1, reg: 268.6, grape: 5.76, payout: 106.3 }, 6: { big: 229.1, reg: 229.1, grape: 5.67, payout: 110.6 } } },
+    { id: 'F2', name: 'ファンキージャグラー2', bigPayout: 240, regPayout: 96, backcalcCherry: 35.617, settings: { 1: { big: 266.4, reg: 439.8, grape: 5.94, payout: 98.2 }, 2: { big: 259.0, reg: 407.1, grape: 5.93, payout: 99.5 }, 3: { big: 256.0, reg: 366.1, grape: 5.88, payout: 101.2 }, 4: { big: 249.2, reg: 322.8, grape: 5.83, payout: 103.5 }, 5: { big: 240.1, reg: 299.3, grape: 5.80, payout: 105.8 }, 6: { big: 219.9, reg: 262.1, grape: 5.77, payout: 110.3 } } },
+    { id: 'G3', name: 'ゴーゴージャグラー3', bigPayout: 240, regPayout: 96, backcalcCherry: 33.2, settings: { 1: { big: 259.0, reg: 354.2, grape: 6.25, payout: 98.2 }, 2: { big: 258.0, reg: 332.7, grape: 6.20, payout: 99.5 }, 3: { big: 257.0, reg: 306.2, grape: 6.15, payout: 101.5 }, 4: { big: 254.0, reg: 268.6, grape: 6.07, payout: 104.0 }, 5: { big: 247.3, reg: 247.3, grape: 6.00, payout: 106.5 }, 6: { big: 234.9, reg: 234.9, grape: 5.92, payout: 110.1 } } },
+    { id: 'H3', name: 'ハッピージャグラーVIII', bigPayout: 240, regPayout: 96, backcalcCherry: 56.55, settings: { 1: { big: 273.1, reg: 397.2, grape: 6.04, payout: 98.0 }, 2: { big: 270.8, reg: 362.1, grape: 6.01, payout: 99.2 }, 3: { big: 263.2, reg: 332.7, grape: 5.98, payout: 101.0 }, 4: { big: 254.0, reg: 300.6, grape: 5.86, payout: 103.9 }, 5: { big: 239.2, reg: 273.1, grape: 5.84, payout: 106.9 }, 6: { big: 226.0, reg: 256.0, grape: 5.82, payout: 110.1 } } },
+    { id: 'GG', name: 'ジャグラーガールズSS', bigPayout: 240, regPayout: 96, backcalcCherry: 33.3, settings: { 1: { big: 273.1, reg: 381.0, grape: 6.01, payout: 98.0 }, 2: { big: 270.8, reg: 350.5, grape: 6.01, payout: 99.2 }, 3: { big: 260.1, reg: 316.6, grape: 6.01, payout: 101.1 }, 4: { big: 250.1, reg: 281.3, grape: 6.01, payout: 103.8 }, 5: { big: 243.6, reg: 270.8, grape: 5.92, payout: 106.1 }, 6: { big: 226.0, reg: 252.1, grape: 5.89, payout: 110.1 } } },
+    { id: 'MR', name: 'ミスタージャグラー', bigPayout: 240, regPayout: 96, backcalcCherry: 39.0, settings: { 1: { big: 268.6, reg: 374.5, grape: 6.22, payout: 98.0 }, 2: { big: 267.5, reg: 354.2, grape: 6.16, payout: 99.2 }, 3: { big: 260.1, reg: 331.0, grape: 6.12, payout: 101.3 }, 4: { big: 249.2, reg: 291.3, grape: 6.09, payout: 104.2 }, 5: { big: 240.9, reg: 257.0, grape: 6.05, payout: 107.0 }, 6: { big: 237.4, reg: 237.4, grape: 6.02, payout: 110.1 } } },
+    { id: 'UM', name: 'ウルトラミラクルジャグラー', bigPayout: 240, regPayout: 96, backcalcCherry: 34.86, settings: { 1: { big: 267.5, reg: 425.6, grape: 5.94, payout: 98.1 }, 2: { big: 261.1, reg: 402.1, grape: 5.94, payout: 99.4 }, 3: { big: 256.0, reg: 350.5, grape: 5.94, payout: 101.4 }, 4: { big: 242.7, reg: 322.8, grape: 5.93, payout: 104.3 }, 5: { big: 233.2, reg: 297.9, grape: 5.93, payout: 106.9 }, 6: { big: 216.3, reg: 277.7, grape: 5.93, payout: 110.5 } } }
+];
+
+function backCalculateGrapes(machine, spins, big, reg, diff) {
+    const replayProb = 1 / 7.298;
+    const totalIn = spins * 3;
+    const totalOut = totalIn + diff;
+    const bonusOut = (big * machine.bigPayout) + (reg * machine.regPayout);
+    const cherryOut = (spins / machine.backcalcCherry) * 2;
+    const replayOut = (spins * replayProb) * 3;
+    const remainingOut = totalOut - bonusOut - cherryOut - replayOut;
+    return Math.max(0, Math.round(remainingOut / 8));
+}
+
+function calculateEstimation(machine, spins, big, reg, grape) {
+    const settings = [1, 2, 3, 4, 5, 6];
+    const logLikelihoods = settings.map(s => {
+        const specs = machine.settings[s];
+        const pBig = 1 / specs.big;
+        const pReg = 1 / specs.reg;
+        const pGrape = 1 / specs.grape;
+        const pMiss = 1 - (pBig + pReg + pGrape);
+        
+        const missCount = spins - (big + reg + grape);
+        // Bayesian log-likelihood
+        return (big * Math.log(pBig)) + (reg * Math.log(pReg)) + (grape * Math.log(pGrape)) + (missCount * Math.log(pMiss));
+    });
+
+    const maxLog = Math.max(...logLikelihoods);
+    const likelihoods = logLikelihoods.map(l => Math.exp(l - maxLog));
+    const sumLikelihood = likelihoods.reduce((a, b) => a + b, 0);
+    return settings.map((s, i) => ({ setting: s, prob: (likelihoods[i] / sumLikelihood) * 100 }));
+}
+
 function showAnalysis(dataString) {
     document.getElementById('installer-section').style.display = 'none';
     document.getElementById('analysis-section').style.display = 'block';
     
-    const rows = dataString.split('|');
+    const rawRows = dataString.split('|');
     const tbody = document.getElementById('analysis-tbody');
     tbody.innerHTML = '';
     
-    let totalGames = 0, totalBB = 0, totalRB = 0;
-    const modelIdMap = { 'I6': 'アイム', 'M5': 'マイジャグ', 'F2': 'ファンキー', 'G3': 'ゴーゴー', 'H3': 'ハッピー', 'GG': 'ガールズ', 'MR': 'ミスター', 'UM': 'ミラクル' };
-    
-    rows.forEach(rowData => {
-        const [mid, no, g, diff, bb, rb] = rowData.split(',');
+    const mid = rawRows[0].split(',')[0];
+    const machine = machineSpecs.find(m => m.id === mid) || machineSpecs[0];
+    document.getElementById('display-model-name').innerText = machine.name + ' 解析結果';
+
+    rawRows.forEach((rowData, index) => {
+        const [_, no, g, __, bb, rb] = rowData.split(',');
         const gameCount = parseInt(g) || 0;
         const bbCount = parseInt(bb) || 0;
         const rbCount = parseInt(rb) || 0;
         
-        totalGames += gameCount;
-        totalBB += bbCount;
-        totalRB += rbCount;
-        
-        const combined = bbCount + rbCount;
-        const prob = combined > 0 ? (gameCount / combined).toFixed(1) : '-';
-        const modelName = modelIdMap[mid] || 'ジャグラー';
-        document.getElementById('display-model-name').innerText = modelName + ' 解析結果';
-
         const tr = document.createElement('tr');
-        const probClass = (parseFloat(prob) < 135) ? 'high-setting' : '';
-        
+        tr.id = `row-${index}`;
         tr.innerHTML = `
             <td>${no}</td>
             <td>${gameCount.toLocaleString()}</td>
             <td>${bbCount}</td>
             <td>${rbCount}</td>
-            <td>${combined}</td>
-            <td class="${probClass}">${prob !== '-' ? '1/' + prob : '-'}</td>
+            <td><input type="number" class="diff-input" data-index="${index}" placeholder="0"></td>
+            <td class="grape-val">-</td>
+            <td class="prob-val">-</td>
+            <td class="est-val">-</td>
         `;
         tbody.appendChild(tr);
+
+        // Add event listener for diff input
+        tr.querySelector('.diff-input').addEventListener('input', (e) => {
+            const diff = parseInt(e.target.value) || 0;
+            updateRowAnalysis(tr, machine, gameCount, bbCount, rbCount, diff);
+            updateGlobalSummary(machine);
+        });
+        
+        // Initial calc with diff=0
+        updateRowAnalysis(tr, machine, gameCount, bbCount, rbCount, 0);
     });
+    updateGlobalSummary(machine);
+}
+
+function updateRowAnalysis(tr, machine, spins, big, reg, diff) {
+    const grapeCount = backCalculateGrapes(machine, spins, big, reg, diff);
+    const grapeProb = grapeCount > 0 ? (spins / grapeCount).toFixed(2) : '-';
     
-    // Summary
-    const avgCombined = (totalBB + totalRB) > 0 ? (totalGames / (totalBB + totalRB)).toFixed(1) : '-';
+    const estimation = calculateEstimation(machine, spins, big, reg, grapeCount);
+    const bestSetting = [...estimation].sort((a, b) => b.prob - a.prob)[0];
+    
+    tr.querySelector('.grape-val').innerText = grapeProb !== '-' ? '1/' + grapeProb : '-';
+    tr.querySelector('.prob-val').innerText = (reg > 0) ? '1/' + (spins / (big + reg)).toFixed(1) : '-';
+    tr.querySelector('.est-val').innerText = `設定${bestSetting.setting} (${bestSetting.prob.toFixed(1)}%)`;
+    
+    // Highlight if setting 5/6 probability is high
+    const highSettingProb = estimation.filter(e => e.setting >= 5).reduce((sum, e) => sum + e.prob, 0);
+    tr.querySelector('.est-val').className = 'est-val ' + (highSettingProb > 50 ? 'high-setting' : '');
+}
+
+function updateGlobalSummary(machine) {
+    const rows = Array.from(document.querySelectorAll('#analysis-tbody tr'));
+    let tSpins = 0, tBB = 0, tRB = 0, tDiff = 0;
+    
+    rows.forEach(tr => {
+        tSpins += parseInt(tr.cells[1].innerText.replace(/,/g, '')) || 0;
+        tBB += parseInt(tr.cells[2].innerText) || 0;
+        tRB += parseInt(tr.cells[3].innerText) || 0;
+        tDiff += parseInt(tr.querySelector('.diff-input').value) || 0;
+    });
+
+    const tGrape = backCalculateGrapes(machine, tSpins, tBB, tRB, tDiff);
+    const avgGrape = tGrape > 0 ? (tSpins / tGrape).toFixed(2) : '-';
+    const estimation = calculateEstimation(machine, tSpins, tBB, tRB, tGrape);
+    const best = [...estimation].sort((a, b) => b.prob - a.prob)[0];
+
     document.getElementById('total-units').innerText = rows.length;
-    document.getElementById('avg-bb').innerText = (totalBB / rows.length).toFixed(1);
-    document.getElementById('avg-rb').innerText = (totalRB / rows.length).toFixed(1);
-    document.getElementById('avg-combined').innerText = avgCombined !== '-' ? '1/' + avgCombined : '-';
+    document.getElementById('avg-bb').innerText = (tBB / rows.length).toFixed(1);
+    document.getElementById('avg-rb').innerText = (tRB / rows.length).toFixed(1);
+    document.getElementById('avg-grape').innerText = avgGrape !== '-' ? '1/' + avgGrape : '-';
+    document.getElementById('estimated-setting').innerText = `設定${best.setting} (${best.prob.toFixed(1)}%)`;
 }
 
 // Tab switcher

@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Outfit:wght@300;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jstat@latest/dist/jstat.min.js"></script>
 </head>
 <body>
     <div class="background-glow"></div>
@@ -97,9 +98,13 @@
                         <span class="label">平均RB</span>
                         <span id="avg-rb" class="value">-</span>
                     </div>
+                    <div class="stat-box">
+                        <span class="label">平均ブドウ</span>
+                        <span id="avg-grape" class="value">-</span>
+                    </div>
                     <div class="stat-box highlight">
-                        <span class="label">平均合成</span>
-                        <span id="avg-combined" class="value">-</span>
+                        <span class="label">推定設定</span>
+                        <span id="estimated-setting" class="value">-</span>
                     </div>
                 </div>
 
@@ -111,8 +116,10 @@
                                 <th>ゲーム数</th>
                                 <th>BB</th>
                                 <th>RB</th>
-                                <th>合成</th>
+                                <th>差枚(入力)</th>
+                                <th>ブドウ逆算</th>
                                 <th>合算1/x</th>
+                                <th>設定期待度</th>
                             </tr>
                         </thead>
                         <tbody id="analysis-tbody">
