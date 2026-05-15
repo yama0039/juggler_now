@@ -46,7 +46,7 @@ const BOOKMARKLET_CODE = `(function() {
     return \`\${mid},\${no},\${g},0,\${bb},\${rb}\`;
   }).join('|');
 
-  const url = 'https://kenslo65536.com/tool/ana-juggler-receiver.html?d=' + encodeURIComponent(data);
+  const url = window.location.origin + window.location.pathname + '?d=' + encodeURIComponent(data);
   location.href = url;
 })();`;
 
@@ -60,6 +60,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
     bookmarkletLink.href = `javascript:${minified}`;
     
+    // Check for data in URL
+    const params = new URLSearchParams(window.location.search);
+    const dataString = params.get('d');
+    if (dataString) {
+        showAnalysis(dataString);
+    }
+
+    // ... (rest of existing logic) ...
     // Copy functionality
     const copyBtn = document.getElementById('copy-code-btn');
     copyBtn.addEventListener('click', () => {
@@ -82,6 +90,54 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+
+function showAnalysis(dataString) {
+    document.getElementById('installer-section').style.display = 'none';
+    document.getElementById('analysis-section').style.display = 'block';
+    
+    const rows = dataString.split('|');
+    const tbody = document.getElementById('analysis-tbody');
+    tbody.innerHTML = '';
+    
+    let totalGames = 0, totalBB = 0, totalRB = 0;
+    const modelIdMap = { 'I6': 'アイム', 'M5': 'マイジャグ', 'F2': 'ファンキー', 'G3': 'ゴーゴー', 'H3': 'ハッピー', 'GG': 'ガールズ', 'MR': 'ミスター', 'UM': 'ミラクル' };
+    
+    rows.forEach(rowData => {
+        const [mid, no, g, diff, bb, rb] = rowData.split(',');
+        const gameCount = parseInt(g) || 0;
+        const bbCount = parseInt(bb) || 0;
+        const rbCount = parseInt(rb) || 0;
+        
+        totalGames += gameCount;
+        totalBB += bbCount;
+        totalRB += rbCount;
+        
+        const combined = bbCount + rbCount;
+        const prob = combined > 0 ? (gameCount / combined).toFixed(1) : '-';
+        const modelName = modelIdMap[mid] || 'ジャグラー';
+        document.getElementById('display-model-name').innerText = modelName + ' 解析結果';
+
+        const tr = document.createElement('tr');
+        const probClass = (parseFloat(prob) < 135) ? 'high-setting' : '';
+        
+        tr.innerHTML = `
+            <td>${no}</td>
+            <td>${gameCount.toLocaleString()}</td>
+            <td>${bbCount}</td>
+            <td>${rbCount}</td>
+            <td>${combined}</td>
+            <td class="${probClass}">${prob !== '-' ? '1/' + prob : '-'}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+    
+    // Summary
+    const avgCombined = (totalBB + totalRB) > 0 ? (totalGames / (totalBB + totalRB)).toFixed(1) : '-';
+    document.getElementById('total-units').innerText = rows.length;
+    document.getElementById('avg-bb').innerText = (totalBB / rows.length).toFixed(1);
+    document.getElementById('avg-rb').innerText = (totalRB / rows.length).toFixed(1);
+    document.getElementById('avg-combined').innerText = avgCombined !== '-' ? '1/' + avgCombined : '-';
+}
 
 // Tab switcher
 window.showTab = (tabId) => {

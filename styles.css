@@ -225,6 +225,114 @@ h1 span {
     margin-bottom: 0.5rem;
 }
 
+/* Analysis Area */
+.analysis-area {
+    margin-top: 2rem;
+}
+
+.full-width {
+    max-width: 100%;
+}
+
+.analysis-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+
+.btn-small {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.stats-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.stat-box {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.stat-box.highlight {
+    border-color: var(--primary);
+    background: rgba(255, 62, 0, 0.05);
+}
+
+.stat-box .label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+}
+
+.stat-box .value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    font-family: 'Outfit', sans-serif;
+    color: #fff;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.2);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+th, td {
+    padding: 1rem;
+    text-align: right;
+    border-bottom: 1px solid var(--border-color);
+}
+
+th {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-dim);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+}
+
+tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+td:first-child, th:first-child {
+    text-align: left;
+}
+
+.high-setting {
+    color: #00ff66;
+    font-weight: 700;
+}
+
+@media (max-width: 600px) {
+    .stats-summary {
+        grid-template-columns: 1fr 1fr;
+    }
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
