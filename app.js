@@ -91,6 +91,11 @@ function calculateEstimation(machine, spins, big, reg, grape) {
 
 document.addEventListener('DOMContentLoaded', () => {
     const currentUrl = window.location.origin + window.location.pathname;
+    
+    // Debug display
+    const debugEl = document.getElementById('debug-url');
+    if (debugEl) debugEl.innerText = `Redirecting to: ${currentUrl}`;
+
     const minified = BOOKMARKLET_TEMPLATE
         .replace('TARGET_URL', currentUrl)
         .replace(/\n/g, '')
