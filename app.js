@@ -78,10 +78,19 @@ function calculateEstimation(machine, spins, big, reg, grape) {
         const specs = machine.settings[s];
         const pBig = 1 / specs.big;
         const pReg = 1 / specs.reg;
-        const pGrape = 1 / specs.grape;
-        const pMiss = 1 - (pBig + pReg + pGrape);
-        const missCount = spins - (big + reg + grape);
-        return (big * Math.log(pBig)) + (reg * Math.log(pReg)) + (grape * Math.log(pGrape)) + (missCount * Math.log(pMiss));
+        let pTotal = pBig + pReg;
+        let logL = (big * Math.log(pBig)) + (reg * Math.log(pReg));
+        
+        if (grape !== null && grape > 0) {
+            const pGrape = 1 / specs.grape;
+            pTotal += pGrape;
+            logL += (grape * Math.log(pGrape));
+        }
+        
+        const pMiss = 1 - pTotal;
+        const observedCount = big + reg + (grape || 0);
+        logL += (spins - observedCount) * Math.log(pMiss);
+        return logL;
     });
     const maxLog = Math.max(...logLikelihoods);
     const likelihoods = logLikelihoods.map(l => Math.exp(l - maxLog));
@@ -178,24 +187,26 @@ function showAnalysis(dataString) {
             </div>
             <div class="card-input">
                 <label>差枚数 入力</label>
-                <input type="number" class="diff-input" placeholder="0">
+                <input type="number" class="diff-input" placeholder="未入力ならボーナスのみ">
             </div>
         `;
         container.appendChild(card);
 
         const input = card.querySelector('.diff-input');
         input.addEventListener('input', () => {
-            updateRowAnalysis(card, machine, gameCount, bbCount, rbCount, parseInt(input.value) || 0);
+            const diffStr = input.value.trim();
+            const diff = diffStr === '' ? null : parseInt(diffStr);
+            updateRowAnalysis(card, machine, gameCount, bbCount, rbCount, diff);
             updateGlobalSummary(machine);
         });
-        updateRowAnalysis(card, machine, gameCount, bbCount, rbCount, 0);
+        updateRowAnalysis(card, machine, gameCount, bbCount, rbCount, null);
     });
     updateGlobalSummary(machine);
 }
 
 function updateRowAnalysis(card, machine, spins, big, reg, diff) {
-    const grapeCount = backCalculateGrapes(machine, spins, big, reg, diff);
-    const grapeProb = grapeCount > 0 ? (spins / grapeCount).toFixed(2) : '-';
+    const grapeCount = diff !== null ? backCalculateGrapes(machine, spins, big, reg, diff) : null;
+    const grapeProb = grapeCount !== null && grapeCount > 0 ? (spins / grapeCount).toFixed(2) : '-';
     const estimation = calculateEstimation(machine, spins, big, reg, grapeCount);
     const sorted = [...estimation].sort((a, b) => b.prob - a.prob);
     const best = sorted[0];
@@ -213,17 +224,21 @@ function updateRowAnalysis(card, machine, spins, big, reg, diff) {
 
 function updateGlobalSummary(machine) {
     const cards = Array.from(document.querySelectorAll('.unit-card'));
-    let tSpins = 0, tBB = 0, tRB = 0, tDiff = 0;
+    let tSpins = 0, tBB = 0, tRB = 0, tDiff = 0, inputCount = 0;
     cards.forEach(card => {
         tSpins += parseInt(card.querySelector('.data-item .value').innerText.replace(/,/g, '')) || 0;
         const counts = card.querySelectorAll('.data-item .value')[1].innerText.split(' / ');
         tBB += parseInt(counts[0]) || 0;
         tRB += parseInt(counts[1]) || 0;
-        tDiff += parseInt(card.querySelector('.diff-input').value) || 0;
+        const dVal = card.querySelector('.diff-input').value.trim();
+        if (dVal !== '') {
+            tDiff += parseInt(dVal);
+            inputCount++;
+        }
     });
 
-    const tGrape = backCalculateGrapes(machine, tSpins, tBB, tRB, tDiff);
-    const avgGrape = tGrape > 0 ? (tSpins / tGrape).toFixed(2) : '-';
+    const tGrape = inputCount > 0 ? backCalculateGrapes(machine, tSpins, tBB, tRB, tDiff) : null;
+    const avgGrape = tGrape !== null && tGrape > 0 ? (tSpins / tGrape).toFixed(2) : '-';
     const estimation = calculateEstimation(machine, tSpins, tBB, tRB, tGrape);
     const best = [...estimation].sort((a, b) => b.prob - a.prob)[0];
 
