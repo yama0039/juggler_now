@@ -10,6 +10,16 @@ const BOOKMARKLET_TEMPLATE = `(function() {
     return String(el.innerText || el.textContent || '').trim();
   }
   
+  function extractMainNumber(txt) {
+    // 改行や空白、スラッシュなどで分割し、最初に現れた有効な数字の塊を返す
+    const parts = txt.split(/[\s\n/・]+/);
+    for (const p of parts) {
+      const num = p.replace(/[^0-9]/g, '');
+      if (num !== '') return num;
+    }
+    return '0';
+  }
+  
   let modelName = document.title;
   const hTags = document.querySelectorAll('h1, h2, h3, .machine_name, .title, strong, .in-wrap-machine-name, p');
   for (const h of hTags) {
@@ -75,12 +85,12 @@ const BOOKMARKLET_TEMPLATE = `(function() {
     if (td.length === 0) continue; 
     
     const noText = getText(td[idx.no]);
-    const no = noText.replace(/[^0-9]/g, '');
+    const no = extractMainNumber(noText);
     if (!no || isNaN(parseInt(no, 10))) continue;
     
-    const g = getText(td[idx.g]).replace(/[^0-9]/g, '') || '0';
-    const bb = getText(td[idx.bb]).replace(/[^0-9]/g, '') || '0';
-    const rb = getText(td[idx.rb]).replace(/[^0-9]/g, '') || '0';
+    const g = extractMainNumber(getText(td[idx.g]));
+    const bb = extractMainNumber(getText(td[idx.bb]));
+    const rb = extractMainNumber(getText(td[idx.rb]));
     
     data.push([mid, no, g, bb, rb].join(','));
   }
