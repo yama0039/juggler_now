@@ -4,7 +4,15 @@
 
 const BOOKMARKLET_TEMPLATE = `(function() {
   const targetUrl = 'TARGET_URL';
-  const modelName = document.querySelector('#slumpTi h2 strong')?.innerText || '';
+  
+  let modelName = document.title;
+  const hTags = document.querySelectorAll('h1, h2, h3, .machine_name, .title, strong');
+  for (const h of hTags) {
+    if (h.innerText && (h.innerText.includes('ジャグラー') || h.innerText.includes('ｼﾞｬｸﾞﾗｰ'))) {
+      modelName += ' ' + h.innerText;
+    }
+  }
+
   const modelMap = {
     'アイム': 'I6', 'ｱｲﾑ': 'I6',
     'ファンキー': 'F2', 'ﾌｧﾝｷｰ': 'F2',
@@ -21,33 +29,54 @@ const BOOKMARKLET_TEMPLATE = `(function() {
     if (modelName.includes(k)) { mid = v; break; }
   }
 
-  const table = document.querySelector('.tablesorter');
-  if (!table) { alert('テーブルが見つかりません'); return; }
+  const tables = document.querySelectorAll('table');
+  let targetTable = null;
+  let idx = { no: -1, g: -1, bb: -1, rb: -1 };
   
-  const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.innerText.trim());
-  const idx = {
-    no: headers.findIndex(h => h.includes('台番号')),
-    g: headers.findIndex(h => h.includes('累計スタート')),
-    bb: headers.findIndex(h => h.includes('BB')),
-    rb: headers.findIndex(h => h.includes('RB'))
-  };
+  for (const table of tables) {
+    const firstRowCells = Array.from(table.querySelectorAll('tr')[0]?.querySelectorAll('th, td') || []);
+    const headers = firstRowCells.map(c => c.innerText.trim().replace(/\\s+/g, ''));
+    
+    idx.no = headers.findIndex(h => h.includes('台番'));
+    idx.g = headers.findIndex(h => h.includes('G数') || h.includes('ゲーム') || h.includes('スタート') || h.includes('回転') || h.includes('総回'));
+    idx.bb = headers.findIndex(h => h.includes('BB') || h.includes('BIG') || h.includes('大当'));
+    idx.rb = headers.findIndex(h => h.includes('RB') || h.includes('REG') || h.includes('レギュラー'));
+    
+    if (idx.no !== -1 && (idx.bb !== -1 || idx.g !== -1)) {
+      targetTable = table;
+      break;
+    }
+  }
 
-  if (idx.no === -1 || idx.g === -1) {
-    alert('必要な列（台番号、累計スタート等）が見つかりません');
+  if (!targetTable) {
+    alert('必要なデータが含まれるテーブルが見つかりません。スマートフォンの場合はPC表示に切り替えるか、テーブル構造が異なる可能性があります。');
     return;
   }
 
-  const rows = Array.from(table.querySelectorAll('tbody tr')).filter(tr => tr.style.display !== 'none');
-  const data = rows.map(tr => {
-    const td = tr.querySelectorAll('td');
-    const no = td[idx.no].innerText.trim();
-    const g = td[idx.g].innerText.trim().replace(/,/g, '');
-    const bb = td[idx.bb].innerText.trim();
-    const rb = td[idx.rb].innerText.trim();
-    return [mid, no, g, 0, bb, rb].join(',');
-  }).join('|');
+  const rows = Array.from(targetTable.querySelectorAll('tr')).filter(tr => tr.style.display !== 'none');
+  const data = [];
+  
+  for (let i = 0; i < rows.length; i++) {
+    const td = rows[i].querySelectorAll('td');
+    if (td.length === 0) continue; // ヘッダー行スキップ
+    
+    const noText = td[idx.no]?.innerText.trim() || '';
+    const no = noText.replace(/[^0-9]/g, '');
+    if (!no || isNaN(parseInt(no, 10))) continue;
+    
+    const g = td[idx.g]?.innerText.trim().replace(/[^0-9]/g, '') || '0';
+    const bb = td[idx.bb]?.innerText.trim().replace(/[^0-9]/g, '') || '0';
+    const rb = td[idx.rb]?.innerText.trim().replace(/[^0-9]/g, '') || '0';
+    
+    data.push([mid, no, g, 0, bb, rb].join(','));
+  }
 
-  location.href = targetUrl + '?d=' + encodeURIComponent(data);
+  if (data.length === 0) {
+    alert('テーブルからデータを抽出できませんでした。');
+    return;
+  }
+
+  location.href = targetUrl + '?d=' + encodeURIComponent(data.join('|'));
 })();`;
 
 const machineSpecs = [
