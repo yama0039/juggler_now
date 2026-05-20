@@ -14,7 +14,7 @@ const BOOKMARKLET_TEMPLATE = `(function() {
   const hTags = document.querySelectorAll('h1, h2, h3, .machine_name, .title, strong, .in-wrap-machine-name, p');
   for (const h of hTags) {
     const txt = getText(h);
-    if (txt && (txt.includes('ジャグラー') || txt.includes('ｼﾞｬｸﾞﾗｰ'))) {
+    if (txt && (txt.includes('ジャグラー') || txt.includes('ｼﾞｬｸﾞﾗｰ') || txt.toUpperCase().includes('JUGGLER'))) {
       modelName += ' ' + txt;
     }
   }
@@ -42,19 +42,30 @@ const BOOKMARKLET_TEMPLATE = `(function() {
   for (const table of tables) {
     const trs = table.querySelectorAll('tr');
     if (trs.length === 0) continue;
-    const firstRowCells = Array.from(trs[0].querySelectorAll('th, td') || []);
-    const headers = firstRowCells.map(c => getText(c).replace(/\\s+/g, ''));
     
-    idx.no = headers.findIndex(h => h.includes('台番'));
+    // ヘッダー行を探す（列数が3つ以上ある、またはthを含む行）
+    let headerRow = trs[0];
+    for (let i = 0; i < Math.min(trs.length, 5); i++) {
+        const cells = trs[i].querySelectorAll('th, td');
+        if (cells.length >= 4 || trs[i].querySelectorAll('th').length > 0) {
+            headerRow = trs[i];
+            break;
+        }
+    }
     
-    let gIdx = headers.findIndex(h => h.includes('総回') || h.includes('累計') || h.includes('総G'));
+    const headerCells = Array.from(headerRow.querySelectorAll('th, td') || []);
+    const headers = headerCells.map(c => getText(c).replace(/\\s+/g, ''));
+    
+    idx.no = headers.findIndex(h => (h.includes('台番') || h.match(/^[Nn][Oo]/) || h.includes('番号') || h.includes('台No')) && !h.includes('前'));
+    
+    let gIdx = headers.findIndex(h => (h.includes('総回') || h.includes('累計') || h.includes('総G')) && !h.includes('前') && !h.includes('過去'));
     if (gIdx === -1) {
-      gIdx = headers.findIndex(h => h.includes('G数') || h.includes('ゲーム') || h.includes('スタート') || h.includes('回転'));
+      gIdx = headers.findIndex(h => (h.includes('G数') || h.includes('ゲーム') || h.includes('スタート') || h.includes('回転') || h.includes('プレイ')) && !h.includes('前') && !h.includes('過去'));
     }
     idx.g = gIdx;
     
-    idx.bb = headers.findIndex(h => (h.includes('BB') || h.includes('BIG') || h.includes('大当')) && !h.includes('確率') && !h.includes('率'));
-    idx.rb = headers.findIndex(h => (h.includes('RB') || h.includes('REG') || h.includes('レギュラー')) && !h.includes('確率') && !h.includes('率'));
+    idx.bb = headers.findIndex(h => (h.includes('BB') || h.includes('BIG') || h.includes('大当') || h.includes('特賞')) && !h.includes('確率') && !h.includes('率') && !h.includes('前') && !h.includes('過去'));
+    idx.rb = headers.findIndex(h => (h.includes('RB') || h.includes('REG') || h.includes('レギュラー')) && !h.includes('確率') && !h.includes('率') && !h.includes('前') && !h.includes('過去'));
     
     if (idx.no !== -1 && (idx.bb !== -1 || idx.g !== -1)) {
       targetTable = table;
