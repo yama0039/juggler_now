@@ -11,7 +11,7 @@ const BOOKMARKLET_TEMPLATE = `(function() {
   }
   
   let modelName = document.title;
-  const hTags = document.querySelectorAll('h1, h2, h3, .machine_name, .title, strong');
+  const hTags = document.querySelectorAll('h1, h2, h3, .machine_name, .title, strong, .in-wrap-machine-name, p');
   for (const h of hTags) {
     const txt = getText(h);
     if (txt && (txt.includes('ジャグラー') || txt.includes('ｼﾞｬｸﾞﾗｰ'))) {
@@ -46,9 +46,15 @@ const BOOKMARKLET_TEMPLATE = `(function() {
     const headers = firstRowCells.map(c => getText(c).replace(/\\s+/g, ''));
     
     idx.no = headers.findIndex(h => h.includes('台番'));
-    idx.g = headers.findIndex(h => h.includes('G数') || h.includes('ゲーム') || h.includes('スタート') || h.includes('回転') || h.includes('総回'));
-    idx.bb = headers.findIndex(h => h.includes('BB') || h.includes('BIG') || h.includes('大当'));
-    idx.rb = headers.findIndex(h => h.includes('RB') || h.includes('REG') || h.includes('レギュラー'));
+    
+    let gIdx = headers.findIndex(h => h.includes('総回') || h.includes('累計') || h.includes('総G'));
+    if (gIdx === -1) {
+      gIdx = headers.findIndex(h => h.includes('G数') || h.includes('ゲーム') || h.includes('スタート') || h.includes('回転'));
+    }
+    idx.g = gIdx;
+    
+    idx.bb = headers.findIndex(h => (h.includes('BB') || h.includes('BIG') || h.includes('大当')) && !h.includes('確率') && !h.includes('率'));
+    idx.rb = headers.findIndex(h => (h.includes('RB') || h.includes('REG') || h.includes('レギュラー')) && !h.includes('確率') && !h.includes('率'));
     
     if (idx.no !== -1 && (idx.bb !== -1 || idx.g !== -1)) {
       targetTable = table;
