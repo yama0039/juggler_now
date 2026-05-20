@@ -58,7 +58,7 @@ const BOOKMARKLET_TEMPLATE = `(function() {
   
   for (let i = 0; i < rows.length; i++) {
     const td = rows[i].querySelectorAll('td');
-    if (td.length === 0) continue; // ヘッダー行スキップ
+    if (td.length === 0) continue; 
     
     const noText = td[idx.no]?.innerText.trim() || '';
     const no = noText.replace(/[^0-9]/g, '');
