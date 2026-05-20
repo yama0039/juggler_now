@@ -5,11 +5,17 @@
 const BOOKMARKLET_TEMPLATE = `(function() {
   const targetUrl = 'TARGET_URL';
   
+  function getText(el) {
+    if (!el) return '';
+    return String(el.innerText || el.textContent || '').trim();
+  }
+  
   let modelName = document.title;
   const hTags = document.querySelectorAll('h1, h2, h3, .machine_name, .title, strong');
   for (const h of hTags) {
-    if (h.innerText && (h.innerText.includes('ジャグラー') || h.innerText.includes('ｼﾞｬｸﾞﾗｰ'))) {
-      modelName += ' ' + h.innerText;
+    const txt = getText(h);
+    if (txt && (txt.includes('ジャグラー') || txt.includes('ｼﾞｬｸﾞﾗｰ'))) {
+      modelName += ' ' + txt;
     }
   }
 
@@ -34,8 +40,10 @@ const BOOKMARKLET_TEMPLATE = `(function() {
   let idx = { no: -1, g: -1, bb: -1, rb: -1 };
   
   for (const table of tables) {
-    const firstRowCells = Array.from(table.querySelectorAll('tr')[0]?.querySelectorAll('th, td') || []);
-    const headers = firstRowCells.map(c => c.innerText.trim().replace(/\\s+/g, ''));
+    const trs = table.querySelectorAll('tr');
+    if (trs.length === 0) continue;
+    const firstRowCells = Array.from(trs[0].querySelectorAll('th, td') || []);
+    const headers = firstRowCells.map(c => getText(c).replace(/\\s+/g, ''));
     
     idx.no = headers.findIndex(h => h.includes('台番'));
     idx.g = headers.findIndex(h => h.includes('G数') || h.includes('ゲーム') || h.includes('スタート') || h.includes('回転') || h.includes('総回'));
@@ -55,23 +63,18 @@ const BOOKMARKLET_TEMPLATE = `(function() {
 
   const rows = Array.from(targetTable.querySelectorAll('tr')).filter(tr => tr.style.display !== 'none');
   const data = [];
-  
-  function getVal(tdEl) {
-    if (!tdEl) return '0';
-    return String(tdEl.innerText || tdEl.textContent || '').trim();
-  }
 
   for (let i = 0; i < rows.length; i++) {
     const td = rows[i].querySelectorAll('td');
     if (td.length === 0) continue; 
     
-    const noText = getVal(td[idx.no]);
+    const noText = getText(td[idx.no]);
     const no = noText.replace(/[^0-9]/g, '');
     if (!no || isNaN(parseInt(no, 10))) continue;
     
-    const g = getVal(td[idx.g]).replace(/[^0-9]/g, '') || '0';
-    const bb = getVal(td[idx.bb]).replace(/[^0-9]/g, '') || '0';
-    const rb = getVal(td[idx.rb]).replace(/[^0-9]/g, '') || '0';
+    const g = getText(td[idx.g]).replace(/[^0-9]/g, '') || '0';
+    const bb = getText(td[idx.bb]).replace(/[^0-9]/g, '') || '0';
+    const rb = getText(td[idx.rb]).replace(/[^0-9]/g, '') || '0';
     
     data.push([mid, no, g, 0, bb, rb].join(','));
   }
