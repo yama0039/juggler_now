@@ -44,7 +44,7 @@ const BOOKMARKLET_TEMPLATE = `(function() {
     const trs = table.querySelectorAll('tr');
     if (trs.length < 2) continue;
     
-    // ヘッダー行を探す（「台番」などの文字列を含む行を優先）
+    /* ヘッダー行を探す（「台番」などの文字列を含む行を優先） */
     let headerRow = trs[0];
     for (let i = 0; i < Math.min(trs.length, 5); i++) {
         const rowText = getText(trs[i]);
