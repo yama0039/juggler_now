@@ -82,7 +82,7 @@ const BOOKMARKLET_TEMPLATE = `(function() {
     const bb = getText(td[idx.bb]).replace(/[^0-9]/g, '') || '0';
     const rb = getText(td[idx.rb]).replace(/[^0-9]/g, '') || '0';
     
-    data.push([mid, no, g, 0, bb, rb].join(','));
+    data.push([mid, no, g, bb, rb].join(','));
   }
 
   if (data.length === 0) {
@@ -90,7 +90,7 @@ const BOOKMARKLET_TEMPLATE = `(function() {
     return;
   }
 
-  location.href = targetUrl + '?d=' + encodeURIComponent(data.join('|'));
+  location.href = targetUrl + '#d=' + encodeURIComponent(data.join('|'));
 })();`;
 
 const machineSpecs = [
@@ -174,10 +174,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    const params = new URLSearchParams(window.location.search);
-    const dataString = params.get('d');
-    if (dataString) {
-        showAnalysis(dataString);
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#d=')) {
+        const dataString = hash.substring(3); // '#d=' を削除
+        showAnalysis(decodeURIComponent(dataString));
+    } else {
+        const params = new URLSearchParams(window.location.search);
+        const dataString = params.get('d');
+        if (dataString) {
+            showAnalysis(dataString);
+        }
     }
 });
 
@@ -195,7 +201,13 @@ function showAnalysis(dataString) {
     document.getElementById('model-badge').innerText = mid;
 
     rawRows.forEach((rowData, index) => {
-        const [_, no, g, __, bb, rb] = rowData.split(',');
+        // 後方互換性のため、列数が6の場合は4番目(インデックス3)をスキップ、列数が5の場合はそのまま取得
+        const cols = rowData.split(',');
+        const no = cols[1];
+        const g = cols[2];
+        const bb = cols.length === 6 ? cols[4] : cols[3];
+        const rb = cols.length === 6 ? cols[5] : cols[4];
+        
         const gameCount = parseInt(g) || 0;
         const bbCount = parseInt(bb) || 0;
         const rbCount = parseInt(rb) || 0;
