@@ -56,21 +56,22 @@ const BOOKMARKLET_TEMPLATE = `(function() {
   const rows = Array.from(targetTable.querySelectorAll('tr')).filter(tr => tr.style.display !== 'none');
   const data = [];
   
+  function getVal(tdEl) {
+    if (!tdEl) return '0';
+    return String(tdEl.innerText || tdEl.textContent || '').trim();
+  }
+
   for (let i = 0; i < rows.length; i++) {
     const td = rows[i].querySelectorAll('td');
     if (td.length === 0) continue; 
     
-    const noText = td[idx.no] ? td[idx.no].innerText : '';
+    const noText = getVal(td[idx.no]);
     const no = noText.replace(/[^0-9]/g, '');
     if (!no || isNaN(parseInt(no, 10))) continue;
     
-    const gText = td[idx.g] ? td[idx.g].innerText : '0';
-    const bbText = td[idx.bb] ? td[idx.bb].innerText : '0';
-    const rbText = td[idx.rb] ? td[idx.rb].innerText : '0';
-    
-    const g = gText.trim().replace(/[^0-9]/g, '') || '0';
-    const bb = bbText.trim().replace(/[^0-9]/g, '') || '0';
-    const rb = rbText.trim().replace(/[^0-9]/g, '') || '0';
+    const g = getVal(td[idx.g]).replace(/[^0-9]/g, '') || '0';
+    const bb = getVal(td[idx.bb]).replace(/[^0-9]/g, '') || '0';
+    const rb = getVal(td[idx.rb]).replace(/[^0-9]/g, '') || '0';
     
     data.push([mid, no, g, 0, bb, rb].join(','));
   }
