@@ -1,5 +1,5 @@
 /**
- * Juggler Data Bridge - Unified App Logic (v1.4.1)
+ * Juggler Data Bridge - Unified App Logic (v1.5.0)
  */
 
 const BOOKMARKLET_TEMPLATE = `(function() {
@@ -14,20 +14,20 @@ const BOOKMARKLET_TEMPLATE = `(function() {
   const hTags = document.querySelectorAll('h1, h2, h3, .machine_name, .title, strong, .in-wrap-machine-name, p');
   for (const h of hTags) {
     const txt = getText(h);
-    if (txt && (txt.includes('ジャグラー') || txt.includes('ｼﾞｬｸﾞﾗｰ') || txt.toUpperCase().includes('JUGGLER'))) {
+    if (txt && (txt.includes('\u30b8\u30e3\u30b0\u30e9\u30fc') || txt.includes('\uff7c\uff9e\uff6c\uff78\uff9e\uff97\uff70'))) {
       modelName += ' ' + txt;
     }
   }
 
   const modelMap = {
-    'アイム': 'I6', 'ｱｲﾑ': 'I6',
-    'ファンキー': 'F2', 'ﾌｧﾝｷｰ': 'F2',
-    'マイジャグ': 'M5', 'ﾏｲｼﾞｬｸﾞ': 'M5',
-    'ハッピー': 'H3', 'ﾊｯﾋﾟｰ': 'H3',
-    'ゴーゴー': 'G3', 'ｺﾞｰｺﾞｰ': 'G3',
-    'ガールズ': 'GG', 'ｶﾞｰﾙｽﾞ': 'GG',
-    'ミスター': 'MR', 'ﾐｽﾀｰ': 'MR',
-    'ミラクル': 'UM', 'ﾐﾗｸﾙ': 'UM'
+    '\u30a2\u30a4\u30e0': 'I6', '\uff71\uff72\uff91': 'I6',
+    '\u30d5\u30a1\u30f3\u30ad\u30fc': 'F2', '\uff8c\uff67\uff9d\uff77\uff70': 'F2',
+    '\u30de\u30a4\u30b8\u30e3\u30b0': 'M5', '\uff8f\uff72\uff7c\uff9e\uff6c\uff78\uff9e': 'M5',
+    '\u30cf\u30c3\u30d4\u30fc': 'H3', '\uff8a\uff6f\uff8b\uff9f\uff70': 'H3',
+    '\u30b4\u30fc\u30b4\u30fc': 'G3', '\uff7a\uff9e\uff70\uff7a\uff9e\uff70': 'G3',
+    '\u30ac\u30fc\u30eb\u30ba': 'GG', '\uff76\uff9e\uff70\uff99\uff7d\uff9e': 'GG',
+    '\u30df\u30b9\u30bf\u30fc': 'MR', '\uff90\uff7d\uff80\uff70': 'MR',
+    '\u30df\u30e9\u30af\u30eb': 'UM', '\uff90\uff97\uff78\uff99': 'UM'
   };
   
   let mid = 'J';
@@ -36,54 +36,34 @@ const BOOKMARKLET_TEMPLATE = `(function() {
   }
 
   const tables = document.querySelectorAll('table');
-  let bestTable = null;
-  let maxDataRows = 0;
-  let bestIdx = { no: -1, g: -1, bb: -1, rb: -1 };
+  let targetTable = null;
+  let idx = { no: -1, g: -1, bb: -1, rb: -1 };
   
   for (const table of tables) {
     const trs = table.querySelectorAll('tr');
-    if (trs.length < 2) continue;
+    if (trs.length === 0) continue;
+    const firstRowCells = Array.from(trs[0].querySelectorAll('th, td') || []);
+    const headers = firstRowCells.map(c => getText(c).replace(/\\s+/g, ''));
     
-    /* ヘッダー行を探す（「台番」などの文字列を含む行を優先） */
-    let headerRow = trs[0];
-    for (let i = 0; i < Math.min(trs.length, 5); i++) {
-        const rowText = getText(trs[i]);
-        if (rowText.includes('台番') || rowText.includes('番号') || rowText.includes('No')) {
-            headerRow = trs[i];
-            break;
-        }
-    }
+    idx.no = headers.findIndex(h => h.includes('\u53f0\u756a'));
     
-    const headerCells = Array.from(headerRow.querySelectorAll('th, td') || []);
-    const headers = headerCells.map(c => getText(c).replace(/\\s+/g, ''));
-    
-    let currentIdx = { no: -1, g: -1, bb: -1, rb: -1 };
-    
-    currentIdx.no = headers.findIndex(h => (h.includes('台番') || h.match(/^[Nn][Oo]/) || h.includes('番号') || h.includes('台No')) && !h.includes('前'));
-    
-    let gIdx = headers.findIndex(h => (h.includes('総回') || h.includes('累計') || h.includes('総G')) && !h.includes('前') && !h.includes('過去'));
+    let gIdx = headers.findIndex(h => h.includes('\u7dcf\u56de') || h.includes('\u7d2f\u8a08') || h.includes('\u7dcfG'));
     if (gIdx === -1) {
-      gIdx = headers.findIndex(h => (h.includes('G数') || h.includes('ゲーム') || h.includes('スタート') || h.includes('回転') || h.includes('プレイ')) && !h.includes('前') && !h.includes('過去'));
+      gIdx = headers.findIndex(h => h.includes('G\u6570') || h.includes('\u30b2\u30fc\u30e0') || h.includes('\u30b9\u30bf\u30fc\u30c8') || h.includes('\u56de\u8ee2'));
     }
-    currentIdx.g = gIdx;
+    idx.g = gIdx;
     
-    currentIdx.bb = headers.findIndex(h => (h.includes('BB') || h.includes('BIG') || h.includes('大当') || h.includes('特賞')) && !h.includes('確率') && !h.includes('率') && !h.includes('前') && !h.includes('過去'));
-    currentIdx.rb = headers.findIndex(h => (h.includes('RB') || h.includes('REG') || h.includes('レギュラー')) && !h.includes('確率') && !h.includes('率') && !h.includes('前') && !h.includes('過去'));
+    idx.bb = headers.findIndex(h => (h.includes('BB') || h.includes('BIG') || h.includes('\u5927\u5f53')) && !h.includes('\u78ba\u7387') && !h.includes('\u7387'));
+    idx.rb = headers.findIndex(h => (h.includes('RB') || h.includes('REG') || h.includes('\u30ec\u30ae\u30e5\u30e9\u30fc')) && !h.includes('\u78ba\u7387') && !h.includes('\u7387'));
     
-    if (currentIdx.no !== -1 && (currentIdx.bb !== -1 || currentIdx.g !== -1)) {
-      if (trs.length > maxDataRows) {
-        maxDataRows = trs.length;
-        bestTable = table;
-        bestIdx = currentIdx;
-      }
+    if (idx.no !== -1 && (idx.bb !== -1 || idx.g !== -1)) {
+      targetTable = table;
+      break;
     }
   }
 
-  targetTable = bestTable;
-  idx = bestIdx;
-
   if (!targetTable) {
-    alert('必要なデータが含まれるテーブルが見つかりません。スマートフォンの場合はPC表示に切り替えるか、テーブル構造が異なる可能性があります。');
+    alert('\u5fc5\u8981\u306a\u30c7\u30fc\u30bf\u304c\u542b\u307e\u308c\u308b\u30c6\u30fc\u30d6\u30eb\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002\u30b9\u30de\u30fc\u30c8\u30d5\u30a9\u30f3\u306e\u5834\u5408\u306fPC\u8868\u793a\u306b\u5207\u308a\u66ff\u3048\u308b\u304b\u3001\u30c6\u30fc\u30d6\u30eb\u69cb\u9020\u304c\u7570\u306a\u308b\u53ef\u80fd\u6027\u304c\u3042\u308a\u307e\u3059\u3002');
     return;
   }
 
@@ -106,7 +86,7 @@ const BOOKMARKLET_TEMPLATE = `(function() {
   }
 
   if (data.length === 0) {
-    alert('テーブルからデータを抽出できませんでした。');
+    alert('\u30c6\u30fc\u30d6\u30eb\u304b\u3089\u30c7\u30fc\u30bf\u3092\u62bd\u51fa\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f\u3002');
     return;
   }
 
@@ -114,14 +94,14 @@ const BOOKMARKLET_TEMPLATE = `(function() {
 })();`;
 
 const machineSpecs = [
-    { id: 'I6', name: 'SアイムジャグラーEX', bigPayout: 252, regPayout: 96, backcalcCherry: 35.617, settings: { 1: { big: 273.1, reg: 439.8, grape: 6.02, payout: 97.9 }, 2: { big: 269.7, reg: 399.6, grape: 6.02, payout: 99.0 }, 3: { big: 269.7, reg: 331.0, grape: 6.02, payout: 100.1 }, 4: { big: 259.0, reg: 315.1, grape: 6.02, payout: 101.9 }, 5: { big: 259.0, reg: 255.0, grape: 6.02, payout: 104.5 }, 6: { big: 255.0, reg: 255.0, grape: 5.85, payout: 106.8 } } },
-    { id: 'M5', name: 'マイジャグラーⅤ', bigPayout: 240, regPayout: 96, backcalcCherry: 34.657, settings: { 1: { big: 273.1, reg: 409.6, grape: 5.91, payout: 98.1 }, 2: { big: 270.8, reg: 385.5, grape: 5.87, payout: 99.3 }, 3: { big: 266.4, reg: 336.1, grape: 5.83, payout: 101.5 }, 4: { big: 254.0, reg: 290.0, grape: 5.80, payout: 104.1 }, 5: { big: 240.1, reg: 268.6, grape: 5.76, payout: 106.3 }, 6: { big: 229.1, reg: 229.1, grape: 5.67, payout: 110.6 } } },
-    { id: 'F2', name: 'ファンキージャグラー2', bigPayout: 240, regPayout: 96, backcalcCherry: 35.617, settings: { 1: { big: 266.4, reg: 439.8, grape: 5.94, payout: 98.2 }, 2: { big: 259.0, reg: 407.1, grape: 5.93, payout: 99.5 }, 3: { big: 256.0, reg: 366.1, grape: 5.88, payout: 101.2 }, 4: { big: 249.2, reg: 322.8, grape: 5.83, payout: 103.5 }, 5: { big: 240.1, reg: 299.3, grape: 5.80, payout: 105.8 }, 6: { big: 219.9, reg: 262.1, grape: 5.77, payout: 110.3 } } },
-    { id: 'G3', name: 'ゴーゴージャグラー3', bigPayout: 240, regPayout: 96, backcalcCherry: 33.2, settings: { 1: { big: 259.0, reg: 354.2, grape: 6.25, payout: 98.2 }, 2: { big: 258.0, reg: 332.7, grape: 6.20, payout: 99.5 }, 3: { big: 257.0, reg: 306.2, grape: 6.15, payout: 101.5 }, 4: { big: 254.0, reg: 268.6, grape: 6.07, payout: 104.0 }, 5: { big: 247.3, reg: 247.3, grape: 6.00, payout: 106.5 }, 6: { big: 234.9, reg: 234.9, grape: 5.92, payout: 110.1 } } },
-    { id: 'H3', name: 'ハッピージャグラーVIII', bigPayout: 240, regPayout: 96, backcalcCherry: 56.55, settings: { 1: { big: 273.1, reg: 397.2, grape: 6.04, payout: 98.0 }, 2: { big: 270.8, reg: 362.1, grape: 6.01, payout: 99.2 }, 3: { big: 263.2, reg: 332.7, grape: 5.98, payout: 101.0 }, 4: { big: 254.0, reg: 300.6, grape: 5.86, payout: 103.9 }, 5: { big: 239.2, reg: 273.1, grape: 5.84, payout: 106.9 }, 6: { big: 226.0, reg: 256.0, grape: 5.82, payout: 110.1 } } },
-    { id: 'GG', name: 'ジャグラーガールズSS', bigPayout: 240, regPayout: 96, backcalcCherry: 33.3, settings: { 1: { big: 273.1, reg: 381.0, grape: 6.01, payout: 98.0 }, 2: { big: 270.8, reg: 350.5, grape: 6.01, payout: 99.2 }, 3: { big: 260.1, reg: 316.6, grape: 6.01, payout: 101.1 }, 4: { big: 250.1, reg: 281.3, grape: 6.01, payout: 103.8 }, 5: { big: 243.6, reg: 270.8, grape: 5.92, payout: 106.1 }, 6: { big: 226.0, reg: 252.1, grape: 5.89, payout: 110.1 } } },
-    { id: 'MR', name: 'ミスタージャグラー', bigPayout: 240, regPayout: 96, backcalcCherry: 39.0, settings: { 1: { big: 268.6, reg: 374.5, grape: 6.22, payout: 98.0 }, 2: { big: 267.5, reg: 354.2, grape: 6.16, payout: 99.2 }, 3: { big: 260.1, reg: 331.0, grape: 6.12, payout: 101.3 }, 4: { big: 249.2, reg: 291.3, grape: 6.09, payout: 104.2 }, 5: { big: 240.9, reg: 257.0, grape: 6.05, payout: 107.0 }, 6: { big: 237.4, reg: 237.4, grape: 6.02, payout: 110.1 } } },
-    { id: 'UM', name: 'ウルトラミラクルジャグラー', bigPayout: 240, regPayout: 96, backcalcCherry: 34.86, settings: { 1: { big: 267.5, reg: 425.6, grape: 5.94, payout: 98.1 }, 2: { big: 261.1, reg: 402.1, grape: 5.94, payout: 99.4 }, 3: { big: 256.0, reg: 350.5, grape: 5.94, payout: 101.4 }, 4: { big: 242.7, reg: 322.8, grape: 5.93, payout: 104.3 }, 5: { big: 233.2, reg: 297.9, grape: 5.93, payout: 106.9 }, 6: { big: 216.3, reg: 277.7, grape: 5.93, payout: 110.5 } } }
+    { id: 'I6', name: 'S\u30a2\u30a4\u30e0\u30b8\u30e3\u30b0\u30e9\u30fcEX', bigPayout: 252, regPayout: 96, backcalcCherry: 35.617, settings: { 1: { big: 273.1, reg: 439.8, grape: 6.02, payout: 97.9 }, 2: { big: 269.7, reg: 399.6, grape: 6.02, payout: 99.0 }, 3: { big: 269.7, reg: 331.0, grape: 6.02, payout: 100.1 }, 4: { big: 259.0, reg: 315.1, grape: 6.02, payout: 101.9 }, 5: { big: 259.0, reg: 255.0, grape: 6.02, payout: 104.5 }, 6: { big: 255.0, reg: 255.0, grape: 5.85, payout: 106.8 } } },
+    { id: 'M5', name: '\u30de\u30a4\u30b8\u30e3\u30b0\u30e9\u30fc\u2164', bigPayout: 240, regPayout: 96, backcalcCherry: 34.657, settings: { 1: { big: 273.1, reg: 409.6, grape: 5.91, payout: 98.1 }, 2: { big: 270.8, reg: 385.5, grape: 5.87, payout: 99.3 }, 3: { big: 266.4, reg: 336.1, grape: 5.83, payout: 101.5 }, 4: { big: 254.0, reg: 290.0, grape: 5.80, payout: 104.1 }, 5: { big: 240.1, reg: 268.6, grape: 5.76, payout: 106.3 }, 6: { big: 229.1, reg: 229.1, grape: 5.67, payout: 110.6 } } },
+    { id: 'F2', name: '\u30d5\u30a1\u30f3\u30ad\u30fc\u30b8\u30e3\u30b0\u30e9\u30fc2', bigPayout: 240, regPayout: 96, backcalcCherry: 35.617, settings: { 1: { big: 266.4, reg: 439.8, grape: 5.94, payout: 98.2 }, 2: { big: 259.0, reg: 407.1, grape: 5.93, payout: 99.5 }, 3: { big: 256.0, reg: 366.1, grape: 5.88, payout: 101.2 }, 4: { big: 249.2, reg: 322.8, grape: 5.83, payout: 103.5 }, 5: { big: 240.1, reg: 299.3, grape: 5.80, payout: 105.8 }, 6: { big: 219.9, reg: 262.1, grape: 5.77, payout: 110.3 } } },
+    { id: 'G3', name: '\u30b4\u30fc\u30b4\u30fc\u30b8\u30e3\u30b0\u30e9\u30fc3', bigPayout: 240, regPayout: 96, backcalcCherry: 33.2, settings: { 1: { big: 259.0, reg: 354.2, grape: 6.25, payout: 98.2 }, 2: { big: 258.0, reg: 332.7, grape: 6.20, payout: 99.5 }, 3: { big: 257.0, reg: 306.2, grape: 6.15, payout: 101.5 }, 4: { big: 254.0, reg: 268.6, grape: 6.07, payout: 104.0 }, 5: { big: 247.3, reg: 247.3, grape: 6.00, payout: 106.5 }, 6: { big: 234.9, reg: 234.9, grape: 5.92, payout: 110.1 } } },
+    { id: 'H3', name: '\u30cf\u30c3\u30d4\u30fc\u30b8\u30e3\u30b0\u30e9\u30fcVIII', bigPayout: 240, regPayout: 96, backcalcCherry: 56.55, settings: { 1: { big: 273.1, reg: 397.2, grape: 6.04, payout: 98.0 }, 2: { big: 270.8, reg: 362.1, grape: 6.01, payout: 99.2 }, 3: { big: 263.2, reg: 332.7, grape: 5.98, payout: 101.0 }, 4: { big: 254.0, reg: 300.6, grape: 5.86, payout: 103.9 }, 5: { big: 239.2, reg: 273.1, grape: 5.84, payout: 106.9 }, 6: { big: 226.0, reg: 256.0, grape: 5.82, payout: 110.1 } } },
+    { id: 'GG', name: '\u30b8\u30e3\u30b0\u30e9\u30fc\u30ac\u30fc\u30eb\u30baSS', bigPayout: 240, regPayout: 96, backcalcCherry: 33.3, settings: { 1: { big: 273.1, reg: 381.0, grape: 6.01, payout: 98.0 }, 2: { big: 270.8, reg: 350.5, grape: 6.01, payout: 99.2 }, 3: { big: 260.1, reg: 316.6, grape: 6.01, payout: 101.1 }, 4: { big: 250.1, reg: 281.3, grape: 6.01, payout: 103.8 }, 5: { big: 243.6, reg: 270.8, grape: 5.92, payout: 106.1 }, 6: { big: 226.0, reg: 252.1, grape: 5.89, payout: 110.1 } } },
+    { id: 'MR', name: '\u30df\u30b9\u30bf\u30fc\u30b8\u30e3\u30b0\u30e9\u30fc', bigPayout: 240, regPayout: 96, backcalcCherry: 39.0, settings: { 1: { big: 268.6, reg: 374.5, grape: 6.22, payout: 98.0 }, 2: { big: 267.5, reg: 354.2, grape: 6.16, payout: 99.2 }, 3: { big: 260.1, reg: 331.0, grape: 6.12, payout: 101.3 }, 4: { big: 249.2, reg: 291.3, grape: 6.09, payout: 104.2 }, 5: { big: 240.9, reg: 257.0, grape: 6.05, payout: 107.0 }, 6: { big: 237.4, reg: 237.4, grape: 6.02, payout: 110.1 } } },
+    { id: 'UM', name: '\u30a6\u30eb\u30c8\u30e9\u30df\u30e9\u30af\u30eb\u30b8\u30e3\u30b0\u30e9\u30fc', bigPayout: 240, regPayout: 96, backcalcCherry: 34.86, settings: { 1: { big: 267.5, reg: 425.6, grape: 5.94, payout: 98.1 }, 2: { big: 261.1, reg: 402.1, grape: 5.94, payout: 99.4 }, 3: { big: 256.0, reg: 350.5, grape: 5.94, payout: 101.4 }, 4: { big: 242.7, reg: 322.8, grape: 5.93, payout: 104.3 }, 5: { big: 233.2, reg: 297.9, grape: 5.93, payout: 106.9 }, 6: { big: 216.3, reg: 277.7, grape: 5.93, payout: 110.5 } } }
 ];
 
 function backCalculateGrapes(machine, spins, big, reg, diff) {
@@ -164,7 +144,6 @@ function calculateEstimation(machine, spins, big, reg, grape) {
 document.addEventListener('DOMContentLoaded', () => {
     const currentUrl = window.location.origin + window.location.pathname;
     
-    // Debug display
     const debugEl = document.getElementById('debug-url');
     if (debugEl) debugEl.innerText = `Redirecting to: ${currentUrl}`;
 
@@ -179,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bookmarkletLink.addEventListener('click', (e) => {
             if (e.target.tagName === 'A') {
                 e.preventDefault();
-                alert('このボタンをブックマークバーにドラッグ＆ドロップしてください。');
+                alert('\u3053\u306e\u30dc\u30bf\u30f3\u3092\u30d6\u30c3\u30af\u30de\u30fc\u30af\u30d0\u30fc\u306b\u30c9\u30e9\u30c3\u30b0\uff06\u30c9\u30ed\u30c3\u30d7\u3057\u3066\u304f\u3060\u3055\u3044\u3002');
             }
         });
     }
@@ -188,15 +167,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (copyBtn) {
         copyBtn.addEventListener('click', () => {
             navigator.clipboard.writeText(`javascript:${minified}`).then(() => {
-                copyBtn.innerText = 'コピーしました！';
-                setTimeout(() => copyBtn.innerText = 'コードをコピー', 2000);
+                copyBtn.innerText = '\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f\uff01';
+                setTimeout(() => copyBtn.innerText = '\u30b3\u30fc\u30c9\u3092\u30b3\u30d4\u30fc', 2000);
             });
         });
     }
     
     const hash = window.location.hash;
     if (hash && hash.startsWith('#d=')) {
-        const dataString = hash.substring(3); // '#d=' を削除
+        const dataString = hash.substring(3);
         showAnalysis(decodeURIComponent(dataString));
     } else {
         const params = new URLSearchParams(window.location.search);
@@ -221,7 +200,6 @@ function showAnalysis(dataString) {
     document.getElementById('model-badge').innerText = mid;
 
     rawRows.forEach((rowData, index) => {
-        // 後方互換性のため、列数が6の場合は4番目(インデックス3)をスキップ、列数が5の場合はそのまま取得
         const cols = rowData.split(',');
         const no = cols[1];
         const g = cols[2];
@@ -238,7 +216,7 @@ function showAnalysis(dataString) {
             <div class="card-top">
                 <div class="unit-no"><span>No.</span>${no}</div>
                 <div class="estimation-badge">
-                    <span class="est-setting">設定 ?</span>
+                    <span class="est-setting">\u8a2d\u5b9a ?</span>
                     <span class="est-prob">-%</span>
                 </div>
             </div>
@@ -252,17 +230,17 @@ function showAnalysis(dataString) {
                     <span class="value">${bbCount} / ${rbCount}</span>
                 </div>
                 <div class="data-item">
-                    <span class="label">合算</span>
+                    <span class="label">\u5408\u7b97</span>
                     <span class="prob-val value">-</span>
                 </div>
                 <div class="data-item">
-                    <span class="label">ブドウ</span>
+                    <span class="label">\u30d6\u30c9\u30a6</span>
                     <span class="grape-val value">-</span>
                 </div>
             </div>
             <div class="card-input">
-                <label>差枚数 入力</label>
-                <input type="number" class="diff-input" placeholder="未入力ならボーナスのみ">
+                <label>\u5dee\u679a\u6570 \u5165\u529b</label>
+                <input type="number" class="diff-input" placeholder="\u672a\u5165\u529b\u306a\u3089\u30dc\u30fc\u30ca\u30b9\u306e\u307f">
             </div>
         `;
         container.appendChild(card);
@@ -290,7 +268,7 @@ function updateRowAnalysis(card, machine, spins, big, reg, diff) {
     card.querySelector('.prob-val').innerText = (big + reg > 0) ? '1/' + (spins / (big + reg)).toFixed(1) : '-';
     
     const estEl = card.querySelector('.est-setting');
-    estEl.innerText = `設定${best.setting}`;
+    estEl.innerText = `\u8a2d\u5b9a${best.setting}`;
     card.querySelector('.est-prob').innerText = `${best.prob.toFixed(1)}%`;
     
     const highProb = estimation.filter(e => e.setting >= 5).reduce((s, e) => s + e.prob, 0);
@@ -320,7 +298,7 @@ function updateGlobalSummary(machine) {
     document.getElementById('total-units').innerText = cards.length;
     document.getElementById('avg-counts').innerText = `${(tBB / cards.length).toFixed(1)} / ${(tRB / cards.length).toFixed(1)}`;
     document.getElementById('avg-grape').innerText = avgGrape !== '-' ? '1/' + avgGrape : '-';
-    document.getElementById('estimated-setting').innerText = `設定${best.setting}`;
+    document.getElementById('estimated-setting').innerText = `\u8a2d\u5b9a${best.setting}`;
 }
 
 window.showTab = (tabId) => {
