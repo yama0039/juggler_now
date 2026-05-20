@@ -60,13 +60,17 @@ const BOOKMARKLET_TEMPLATE = `(function() {
     const td = rows[i].querySelectorAll('td');
     if (td.length === 0) continue; 
     
-    const noText = td[idx.no]?.innerText.trim() || '';
+    const noText = td[idx.no] ? td[idx.no].innerText : '';
     const no = noText.replace(/[^0-9]/g, '');
     if (!no || isNaN(parseInt(no, 10))) continue;
     
-    const g = td[idx.g]?.innerText.trim().replace(/[^0-9]/g, '') || '0';
-    const bb = td[idx.bb]?.innerText.trim().replace(/[^0-9]/g, '') || '0';
-    const rb = td[idx.rb]?.innerText.trim().replace(/[^0-9]/g, '') || '0';
+    const gText = td[idx.g] ? td[idx.g].innerText : '0';
+    const bbText = td[idx.bb] ? td[idx.bb].innerText : '0';
+    const rbText = td[idx.rb] ? td[idx.rb].innerText : '0';
+    
+    const g = gText.trim().replace(/[^0-9]/g, '') || '0';
+    const bb = bbText.trim().replace(/[^0-9]/g, '') || '0';
+    const rb = rbText.trim().replace(/[^0-9]/g, '') || '0';
     
     data.push([mid, no, g, 0, bb, rb].join(','));
   }
