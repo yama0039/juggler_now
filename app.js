@@ -38,14 +38,16 @@ const BOOKMARKLET_TEMPLATE = `(function() {
   const tables = document.querySelectorAll('table');
   let targetTable = null;
   let idx = { no: -1, g: -1, bb: -1, rb: -1 };
+  let debugInfo = 'Tables found: ' + tables.length;
   
   for (const table of tables) {
     const trs = table.querySelectorAll('tr');
     if (trs.length === 0) continue;
     const firstRowCells = Array.from(trs[0].querySelectorAll('th, td') || []);
-    const headers = firstRowCells.map(c => getText(c).replace(/\\s+/g, ''));
+    const headers = firstRowCells.map(c => getText(c).replace(/\s+/g, ''));
+    debugInfo += ' | H[' + trs.length + ']: ' + headers.slice(0, 6).join(',');
     
-    idx.no = headers.findIndex(h => h.includes('\u53f0\u756a'));
+    idx.no = headers.findIndex(h => h === '\u53f0\u756a' || h.includes('\u53f0\u756a') || h.includes('\u756a\u53f7'));
     
     let gIdx = headers.findIndex(h => h.includes('\u7dcf\u56de') || h.includes('\u7d2f\u8a08') || h.includes('\u7dcfG'));
     if (gIdx === -1) {
@@ -63,7 +65,7 @@ const BOOKMARKLET_TEMPLATE = `(function() {
   }
 
   if (!targetTable) {
-    alert('\u5fc5\u8981\u306a\u30c7\u30fc\u30bf\u304c\u542b\u307e\u308c\u308b\u30c6\u30fc\u30d6\u30eb\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093\u3002\u30b9\u30de\u30fc\u30c8\u30d5\u30a9\u30f3\u306e\u5834\u5408\u306fPC\u8868\u793a\u306b\u5207\u308a\u66ff\u3048\u308b\u304b\u3001\u30c6\u30fc\u30d6\u30eb\u69cb\u9020\u304c\u7570\u306a\u308b\u53ef\u80fd\u6027\u304c\u3042\u308a\u307e\u3059\u3002');
+    alert('DEBUG: ' + debugInfo + ' | idx=' + JSON.stringify(idx));
     return;
   }
 
@@ -86,7 +88,7 @@ const BOOKMARKLET_TEMPLATE = `(function() {
   }
 
   if (data.length === 0) {
-    alert('\u30c6\u30fc\u30d6\u30eb\u304b\u3089\u30c7\u30fc\u30bf\u3092\u62bd\u51fa\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f\u3002');
+    alert('DEBUG: Table found but no data. idx=' + JSON.stringify(idx) + ' rows=' + rows.length);
     return;
   }
 
